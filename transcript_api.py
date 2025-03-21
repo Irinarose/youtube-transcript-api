@@ -1,8 +1,24 @@
 from flask import Flask, request, jsonify
 from youtube_transcript_api import YouTubeTranscriptApi
 import re
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.ssl_ import create_urllib3_context
 
 app = Flask(__name__)
+
+# Custom HTTP adapter to disable SSL verification (for testing only)
+class NoSSLVerificationAdapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        context = create_urllib3_context()
+        context.check_hostname = False
+        context.verify_mode = False
+        kwargs['ssl_context'] = context
+        return super(NoSSLVerificationAdapter, self).init_poolmanager(*args, **kwargs)
+
+# Create a custom session with the adapter
+session = requests.Session()
+session.mount('https://', NoSSLVerificationAdapter())
 
 # Function to extract video ID from URL
 def get_video_id(youtube_url):
@@ -20,8 +36,13 @@ def fetch_transcript():
         if not youtube_url:
             return jsonify({"error": "No URL provided"}), 400
         video_id = get_video_id(youtube_url)
-        # Fetch transcript without proxy (using local IP)
-        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+        # Define proxy configuration
+        proxies = {
+            "http": "http://brd-customer-hl_dbf2a686-zone-residential_proxy1:kgvk3uownv4d@brd.superproxy.io:33335",
+            "https": "http://brd-customer-hl_dbf2a686-zone-residential_proxy1:kgvk3uownv4d@brd.superproxy.io:33335"
+        }
+        # Fetch transcript using the proxy with custom session
+        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'], proxies=proxies, http_client=session)
         transcript_text = " ".join([entry['text'] for entry in transcript])
         return jsonify({"transcript": transcript_text})
     except Exception as e:
