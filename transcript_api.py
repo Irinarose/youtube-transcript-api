@@ -4,6 +4,7 @@ import re
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.ssl_ import create_urllib3_context
+import os
 
 app = Flask(__name__)
 
@@ -49,4 +50,5 @@ def fetch_transcript():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5001)
+    port = int(os.getenv("PORT", 5001))  # Use PORT environment variable, default to 5001
+    app.run(host='0.0.0.0', port=port)
