@@ -22,8 +22,8 @@ def fetch_transcript():
         video_id = get_video_id(youtube_url)
         # Define proxy configuration
         proxies = {
-            "http": "http://44.215.100.135:8080",  # Proxy IP and port
-            "https": "http://44.215.100.135:8080"   # Proxy IP and port
+            "http": "http://18.223.25.15:8080",  # New proxy IP and port
+            "https": "http://18.223.25.15:8080"   # New proxy IP and port
         }
         # Fetch transcript using the proxy
         transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'], proxies=proxies)
