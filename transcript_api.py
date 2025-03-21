@@ -2,10 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from youtube_transcript_api import YouTubeTranscriptApi
 import re
-import requests
 import os
 import logging
-import pkg_resources
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -13,19 +11,6 @@ CORS(app)  # Enable CORS for all routes
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-# Path to the Bright Data certificate (relative to the script)
-cert_path = os.path.join(os.path.dirname(__file__), 'brightdata_proxy_ca.crt')
-
-# Create a session with the certificate
-session = requests.Session()
-session.verify = cert_path
-session.timeout = 60  # Increase timeout to 60 seconds
-
-# Check the version of youtube-transcript-api
-yt_transcript_version = pkg_resources.get_distribution("youtube-transcript-api").version
-logger.info(f"Using youtube-transcript-api version: {yt_transcript_version}")
-supports_http_client = tuple(map(int, yt_transcript_version.split('.'))) >= (0, 5, 0)
 
 # Function to extract video ID from URL
 def get_video_id(youtube_url):
@@ -58,11 +43,7 @@ def fetch_transcript():
 
         # Fetch transcript using the proxy
         logger.info(f"Fetching transcript for video ID: {video_id}")
-        if supports_http_client:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'], proxies=proxies, http_client=session)
-        else:
-            logger.warning("http_client not supported in this version of youtube-transcript-api; falling back to default client")
-            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'], proxies=proxies)
+        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'], proxies=proxies)
         transcript_text = " ".join([entry['text'] for entry in transcript])
         logger.info("Successfully fetched transcript")
         return jsonify({"transcript": transcript_text})
