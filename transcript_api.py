@@ -19,6 +19,7 @@ cert_path = os.path.join(os.path.dirname(__file__), 'brightdata_proxy_ca.crt')
 # Create a session with the certificate
 session = requests.Session()
 session.verify = cert_path
+session.timeout = 60  # Increase timeout to 60 seconds to avoid timeouts
 
 # Function to extract video ID from URL
 def get_video_id(youtube_url):
