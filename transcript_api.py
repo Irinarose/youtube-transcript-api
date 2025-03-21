@@ -20,7 +20,13 @@ def fetch_transcript():
         if not youtube_url:
             return jsonify({"error": "No URL provided"}), 400
         video_id = get_video_id(youtube_url)
-        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+        # Define proxy configuration
+        proxies = {
+            "http": "http://44.215.100.135:8080",  # Proxy IP and port
+            "https": "http://44.215.100.135:8080"   # Proxy IP and port
+        }
+        # Fetch transcript using the proxy
+        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'], proxies=proxies)
         transcript_text = " ".join([entry['text'] for entry in transcript])
         return jsonify({"transcript": transcript_text})
     except Exception as e:
